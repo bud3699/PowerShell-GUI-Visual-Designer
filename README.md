@@ -1,6 +1,6 @@
 A simple and intuitive drag-and-drop GUI designer built in HTML, CSS, and JavaScript, designed for generating PowerShell scripts to create Windows Forms interfaces.
 
-![image](https://github.com/user-attachments/assets/6ac64fad-2f7b-471b-aada-b9c7374416a9)
+![image](https://github.com/user-attachments/assets/b4d7b1fd-6c2f-409a-b3ee-4611f9b8df27)
 
 # Features
 
