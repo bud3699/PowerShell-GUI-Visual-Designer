@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerShell GUI Designer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #canvas {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
+            position: relative;
+            background-color: #f9f9f9;
+            overflow: hidden;
+        }
+        .draggable {
+            position: absolute;
+            border: 1px dashed #aaa;
+            padding: 8px;
+            background-color: #fff;
+            cursor: move;
+            text-align: center;
+        }
+        #toolbox {
+            margin-bottom: 10px;
+        }
+        button {
+            margin-right: 5px;
+        }
+        #output {
+            margin-top: 20px;
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>PowerShell GUI Designer</h1>
+    <div id="toolbox">
+        <button onclick="addElement('Button')">Add Button</button>
+        <button onclick="addElement('Label')">Add Label</button>
+        <button onclick="addElement('TextBox')">Add TextBox</button>
+        <button onclick="generateCode()">Generate PowerShell Code</button>
+    </div>
+    <div id="canvas"></div>
+    <textarea id="output" readonly></textarea>
+
+    <script>
+        let elementCounter = 0;
+
+        function addElement(type) {
+            const canvas = document.getElementById("canvas");
+            const element = document.createElement("div");
+            element.className = "draggable";
+            element.textContent = type + " " + (++elementCounter);
+            element.setAttribute("data-type", type);
+            element.style.left = "10px";
+            element.style.top = "10px";
+
+            // Make the element draggable
+            element.addEventListener("mousedown", (e) => startDrag(e, element));
+            canvas.appendChild(element);
+        }
+
+        function startDrag(e, element) {
+            const offsetX = e.clientX - element.offsetLeft;
+            const offsetY = e.clientY - element.offsetTop;
+
+            const onMouseMove = (e) => {
+                element.style.left = e.clientX - offsetX + "px";
+                element.style.top = e.clientY - offsetY + "px";
+            };
+
+            const onMouseUp = () => {
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("mouseup", onMouseUp);
+            };
+
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+        }
+
+        function generateCode() {
+            const elements = document.querySelectorAll(".draggable");
+            let code = `
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName PresentationFramework
+
+$Form = New-Object System.Windows.Forms.Form
+$Form.Text = "Generated GUI"
+$Form.Width = 400
+$Form.Height = 300
+`;
+
+            elements.forEach((el, index) => {
+                const type = el.getAttribute("data-type");
+                const left = parseInt(el.style.left, 10);
+                const top = parseInt(el.style.top, 10);
+
+                if (type === "Button") {
+                    code += `
+$Button${index} = New-Object System.Windows.Forms.Button
+$Button${index}.Text = "${el.textContent}"
+$Button${index}.Left = ${left}
+$Button${index}.Top = ${top}
+$Button${index}.Width = 80
+$Form.Controls.Add($Button${index})
+`;
+                } else if (type === "Label") {
+                    code += `
+$Label${index} = New-Object System.Windows.Forms.Label
+$Label${index}.Text = "${el.textContent}"
+$Label${index}.Left = ${left}
+$Label${index}.Top = ${top}
+$Label${index}.Width = 100
+$Form.Controls.Add($Label${index})
+`;
+                } else if (type === "TextBox") {
+                    code += `
+$TextBox${index} = New-Object System.Windows.Forms.TextBox
+$TextBox${index}.Left = ${left}
+$TextBox${index}.Top = ${top}
+$TextBox${index}.Width = 150
+$Form.Controls.Add($TextBox${index})
+`;
+                }
+            });
+
+            code += `
+$Form.ShowDialog()
+`;
+            document.getElementById("output").value = code;
+        }
+    </script>
+</body>
+</html>
