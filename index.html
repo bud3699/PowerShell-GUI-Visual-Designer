@@ -47,6 +47,10 @@
             background-color: transparent;
             color: black;
             text-align: center;
+            white-space: nowrap;
+            padding: 0 4px;
+            border: 1px solid rgba(0, 0, 0, 0.1); /* Nearly transparent border */
+            border-radius: 3px;
         }
         .textbox {
             width: 150px;
@@ -101,8 +105,6 @@
     <textarea id="output" readonly></textarea>
 
     <script>
-        let elementCounter = 0;
-
         function resizeCanvas() {
             const canvas = document.getElementById("canvas");
             const width = document.getElementById("guiWidth").value;
@@ -118,16 +120,41 @@
             const canvas = document.getElementById("canvas");
             const element = document.createElement("div");
             element.className = `draggable ${type.toLowerCase()}`;
-            element.textContent = type === "Button" ? "Click Me" : type === "Label" ? "Label Text" : "";
             element.setAttribute("data-type", type);
             element.style.left = "10px";
             element.style.top = "30px";
 
+            if (type === "Button") {
+                element.textContent = "Click Me";
+                element.classList.add("button");
+            } else if (type === "Label") {
+                element.textContent = "Label Text";
+                element.classList.add("label");
+                adjustLabelSize(element);
+            } else if (type === "TextBox") {
+                element.classList.add("textbox");
+            }
+
             // Make the element draggable
             element.addEventListener("mousedown", (e) => startDrag(e, element));
             // Allow editing text on double-click
-            element.addEventListener("dblclick", () => editElementText(element));
+            if (type === "Label" || type === "Button") {
+                element.addEventListener("dblclick", () => editElementText(element));
+            }
             canvas.appendChild(element);
+        }
+
+        function adjustLabelSize(label) {
+            const tempSpan = document.createElement("span");
+            tempSpan.style.visibility = "hidden";
+            tempSpan.style.position = "absolute";
+            tempSpan.style.whiteSpace = "nowrap";
+            tempSpan.textContent = label.textContent;
+            document.body.appendChild(tempSpan);
+
+            label.style.width = tempSpan.offsetWidth + "px";
+            label.style.height = tempSpan.offsetHeight + "px";
+            document.body.removeChild(tempSpan);
         }
 
         function startDrag(e, element) {
@@ -153,6 +180,9 @@
             const newText = prompt("Enter new text:", element.textContent);
             if (newText !== null) {
                 element.textContent = newText;
+                if (element.classList.contains("label")) {
+                    adjustLabelSize(element);
+                }
             }
         }
 
@@ -193,7 +223,6 @@ $Label${index} = New-Object System.Windows.Forms.Label
 $Label${index}.Text = "${el.textContent}"
 $Label${index}.Left = ${left}
 $Label${index}.Top = ${top}
-$Label${index}.Width = 100
 $Form.Controls.Add($Label${index})
 `;
                 } else if (type === "TextBox") {
