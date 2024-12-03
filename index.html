@@ -9,8 +9,6 @@
             font-family: Arial, sans-serif;
         }
         #canvas {
-            width: 400px;
-            height: 300px;
             border: 2px solid #333;
             position: relative;
             background-color: #f9f9f9;
@@ -58,6 +56,10 @@
             margin-right: 5px;
             padding: 8px 12px;
         }
+        #settings {
+            text-align: center;
+            margin: 10px 0;
+        }
         #output {
             margin-top: 20px;
             width: 90%;
@@ -70,17 +72,35 @@
 </head>
 <body>
     <h1 style="text-align: center;">PowerShell GUI Designer</h1>
+    <div id="settings">
+        <label for="guiTitle">Title:</label>
+        <input id="guiTitle" type="text" value="Generated GUI">
+        <label for="guiWidth">Width:</label>
+        <input id="guiWidth" type="number" value="400" style="width: 60px;">
+        <label for="guiHeight">Height:</label>
+        <input id="guiHeight" type="number" value="300" style="width: 60px;">
+        <button onclick="resizeCanvas()">Apply</button>
+    </div>
     <div id="toolbox">
         <button onclick="addElement('Button')">Add Button</button>
         <button onclick="addElement('Label')">Add Label</button>
         <button onclick="addElement('TextBox')">Add TextBox</button>
         <button onclick="generateCode()">Generate PowerShell Code</button>
     </div>
-    <div id="canvas"></div>
+    <div id="canvas" style="width: 400px; height: 300px;"></div>
     <textarea id="output" readonly></textarea>
 
     <script>
         let elementCounter = 0;
+
+        function resizeCanvas() {
+            const canvas = document.getElementById("canvas");
+            const width = document.getElementById("guiWidth").value;
+            const height = document.getElementById("guiHeight").value;
+
+            canvas.style.width = width + "px";
+            canvas.style.height = height + "px";
+        }
 
         function addElement(type) {
             const canvas = document.getElementById("canvas");
@@ -93,6 +113,8 @@
 
             // Make the element draggable
             element.addEventListener("mousedown", (e) => startDrag(e, element));
+            // Allow editing text on double-click
+            element.addEventListener("dblclick", () => editElementText(element));
             canvas.appendChild(element);
         }
 
@@ -101,6 +123,7 @@
             const offsetY = e.clientY - element.offsetTop;
 
             const onMouseMove = (e) => {
+                const canvas = document.getElementById("canvas");
                 element.style.left = Math.max(0, Math.min(e.clientX - offsetX, canvas.clientWidth - element.offsetWidth)) + "px";
                 element.style.top = Math.max(0, Math.min(e.clientY - offsetY, canvas.clientHeight - element.offsetHeight)) + "px";
             };
@@ -114,16 +137,28 @@
             document.addEventListener("mouseup", onMouseUp);
         }
 
+        function editElementText(element) {
+            const newText = prompt("Enter new text:", element.textContent);
+            if (newText !== null) {
+                element.textContent = newText;
+            }
+        }
+
         function generateCode() {
-            const elements = document.querySelectorAll(".draggable");
+            const canvas = document.getElementById("canvas");
+            const elements = canvas.querySelectorAll(".draggable");
+            const title = document.getElementById("guiTitle").value;
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+
             let code = `
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName PresentationFramework
 
 $Form = New-Object System.Windows.Forms.Form
-$Form.Text = "Generated GUI"
-$Form.Width = 400
-$Form.Height = 300
+$Form.Text = "${title}"
+$Form.Width = ${width}
+$Form.Height = ${height}
 `;
 
             elements.forEach((el, index) => {
