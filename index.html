@@ -9,37 +9,67 @@
             font-family: Arial, sans-serif;
         }
         #canvas {
-            width: 100%;
-            height: 400px;
-            border: 1px solid #ccc;
+            width: 400px;
+            height: 300px;
+            border: 2px solid #333;
             position: relative;
             background-color: #f9f9f9;
             overflow: hidden;
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         .draggable {
             position: absolute;
-            border: 1px dashed #aaa;
-            padding: 8px;
-            background-color: #fff;
             cursor: move;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .button {
+            width: 80px;
+            height: 30px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            border-radius: 4px;
+        }
+        .label {
+            width: 100px;
+            height: 20px;
+            background-color: transparent;
+            color: black;
             text-align: center;
         }
+        .textbox {
+            width: 150px;
+            height: 25px;
+            background-color: white;
+            border: 1px solid #ccc;
+        }
         #toolbox {
+            text-align: center;
             margin-bottom: 10px;
         }
         button {
             margin-right: 5px;
+            padding: 8px 12px;
         }
         #output {
             margin-top: 20px;
-            width: 100%;
+            width: 90%;
             height: 200px;
             font-family: monospace;
+            margin: 0 auto;
+            display: block;
         }
     </style>
 </head>
 <body>
-    <h1>PowerShell GUI Designer</h1>
+    <h1 style="text-align: center;">PowerShell GUI Designer</h1>
     <div id="toolbox">
         <button onclick="addElement('Button')">Add Button</button>
         <button onclick="addElement('Label')">Add Label</button>
@@ -55,8 +85,8 @@
         function addElement(type) {
             const canvas = document.getElementById("canvas");
             const element = document.createElement("div");
-            element.className = "draggable";
-            element.textContent = type + " " + (++elementCounter);
+            element.className = `draggable ${type.toLowerCase()}`;
+            element.textContent = type === "Button" ? "Click Me" : type === "Label" ? "Label Text" : "";
             element.setAttribute("data-type", type);
             element.style.left = "10px";
             element.style.top = "10px";
@@ -71,8 +101,8 @@
             const offsetY = e.clientY - element.offsetTop;
 
             const onMouseMove = (e) => {
-                element.style.left = e.clientX - offsetX + "px";
-                element.style.top = e.clientY - offsetY + "px";
+                element.style.left = Math.max(0, Math.min(e.clientX - offsetX, canvas.clientWidth - element.offsetWidth)) + "px";
+                element.style.top = Math.max(0, Math.min(e.clientY - offsetY, canvas.clientHeight - element.offsetHeight)) + "px";
             };
 
             const onMouseUp = () => {
