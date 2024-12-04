@@ -5,25 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PowerShell GUI Designer</title>
     <style>
+        /* Base Styles */
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
+
         #canvas {
             position: relative;
-            background-color: #f0f0f0;
             overflow: hidden;
             margin: 20px auto;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
         }
+
         .title-bar {
-            background-color: #0078d4;
-            color: white;
             font-size: 14px;
             line-height: 20px;
             padding: 5px 10px;
             text-align: left;
             user-select: none;
         }
+
         .draggable {
             position: absolute;
             cursor: move;
@@ -32,26 +35,29 @@
             justify-content: center;
             font-size: 12px;
         }
+
+        .button,
+        .label,
+        .textbox {
+            font-family: "Segoe UI", sans-serif;
+        }
+
         .button {
             width: 80px;
             height: 30px;
-            background-color: #e1e1e1;
+            text-align: center;
             border: 1px solid #ccc;
             box-shadow: inset 0 1px 0 white;
-            text-align: center;
-            border-radius: 2px;
-            font-family: "Segoe UI", sans-serif;
-            color: black;
         }
+
         .label {
-            background-color: transparent;
-            color: black;
             text-align: center;
             white-space: nowrap;
-            padding: 0 4px;
+            padding: 2px 4px;
             border: 1px solid rgba(0, 0, 0, 0.1); /* Nearly transparent border */
             border-radius: 3px;
         }
+
         .textbox {
             width: 150px;
             height: 25px;
@@ -60,29 +66,113 @@
             font-family: "Segoe UI", sans-serif;
             font-size: 14px;
         }
+
         #toolbox {
             text-align: center;
             margin-bottom: 10px;
         }
+
         button {
             margin-right: 5px;
-            padding: 8px 12px;
+            padding: 8px 4px;
         }
+
         #settings {
             text-align: center;
             margin: 10px 0;
         }
+
         #output {
             margin-top: 20px;
             width: 90%;
             height: 200px;
-            font-family: monospace;
             margin: 0 auto;
             display: block;
         }
+
+        /* Modern Theme */
+        body.modern {
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        body.modern #canvas {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        body.modern .title-bar {
+            background-color: #0078d4;
+            color: white;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        body.modern button {
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        body.modern button:hover {
+            background-color: #d0d0d0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+
+        body.modern #output {
+            background-color: #f9f9f9;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: "Consolas", monospace;
+        }
+
+
+        /* Powershell style Theme */
+        body.powershell {
+            background-color: #012456;
+            color: #dcdcdc;
+        }
+
+        body.powershell #canvas {
+            background-color: white;
+            border: 2px solid #3a76d6;
+        }
+
+        body.powershell .title-bar {
+            background-color: #007acc;
+            color: white;
+            font-weight: bold;
+        }
+
+        body.powershell button {
+            background-color: #3a76d6;
+            border: 1px solid #1c3e71;
+            color: white;
+        }
+
+
+        body.powershell #output {
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            border: 1px solid #3a76d6;
+            font-family: "Consolas", monospace;
+        }
+
+        body.powershell #canvas {
+            color: black;
+        }
     </style>
 </head>
-<body>
+
+<body class="modern">
     <h1 style="text-align: center;">PowerShell GUI Designer</h1>
     <div id="settings">
         <label for="guiTitle">Title:</label>
@@ -92,6 +182,7 @@
         <label for="guiHeight">Height:</label>
         <input id="guiHeight" type="number" value="300" style="width: 60px;">
         <button onclick="resizeCanvas()">Apply</button>
+        <button onclick="toggleTheme()">Toggle Web Theme</button>
     </div>
     <div id="toolbox">
         <button onclick="addElement('Button')">Add Button</button>
@@ -242,5 +333,35 @@ $Form.ShowDialog()
             document.getElementById("output").value = code;
         }
     </script>
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            if (body.classList.contains("modern")) {
+                body.classList.remove("modern");
+                body.classList.add("powershell");
+            } else {
+                body.classList.remove("powershell");
+                body.classList.add("modern");
+            }
+            saveTheme();
+        }
+
+
+        function saveTheme() {
+            const body = document.body;
+            const currentTheme = body.classList.contains("modern") ? "modern" : "powershell";
+            localStorage.setItem("guiTheme", currentTheme);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem("guiTheme");
+            if (savedTheme) {
+                document.body.classList.remove("modern", "powershell");
+                document.body.classList.add(savedTheme);
+            }
+        }
+        loadTheme();
+    </script>
 </body>
+
 </html>
