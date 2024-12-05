@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,7 +62,8 @@
             text-align: center;
             white-space: nowrap;
             padding: 0 4px;
-            border: 1px solid rgba(0, 0, 0, 0.1); /* Nearly transparent border */
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            /* Nearly transparent border */
             border-radius: 3px;
         }
 
@@ -89,7 +91,7 @@
             margin: 10px 0;
         }
 
-        #output {
+        #codeBox {
             margin-top: 20px;
             width: 90%;
             height: 200px;
@@ -131,7 +133,7 @@
         }
 
 
-        body.modern #output {
+        body.modern #codeBox {
             background-color: #f9f9f9;
             color: #333;
             border: 1px solid #ccc;
@@ -164,7 +166,7 @@
         }
 
 
-        body.powershell #output {
+        body.powershell #codeBox {
             background-color: #1e1e1e;
             color: #dcdcdc;
             border: 1px solid #3a76d6;
@@ -194,11 +196,14 @@
         <button onclick="addElement('Label')">Add Label</button>
         <button onclick="addElement('TextBox')">Add TextBox</button>
         <button onclick="generateCode()">Generate PowerShell Code</button>
+        <button onclick="loadFromCode()">Load PowerShell Code</button>
     </div>
     <div id="canvas" style="width: 400px; height: 300px;">
         <div class="title-bar" id="titleBar">Generated GUI</div>
     </div>
-    <textarea id="output" readonly></textarea>
+    <textarea id="codeBox" placeholder="PowerShell code will appear here or can be pasted here for loading..."
+        style="width: 90%; height: 200px; margin: 20px auto; display: block;"></textarea>
+
 
     <script>
         function resizeCanvas() {
@@ -335,7 +340,70 @@ $Form.Controls.Add($TextBox${index})
             code += `
 $Form.ShowDialog()
 `;
-            document.getElementById("output").value = code;
+            const codeBox = document.getElementById("codeBox");
+            codeBox.value = code.trim();
+        }
+
+
+
+        function loadFromCode() {
+            const inputCode = document.getElementById('codeBox').value;
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '<div class="title-bar" id="titleBar"></div>'; // Reset canvas
+
+            const titleMatch = inputCode.match(/\$Form\.Text\s*=\s*"([^"]+)"/);
+            const widthMatch = inputCode.match(/\$Form\.Width\s*=\s*(\d+)/);
+            const heightMatch = inputCode.match(/\$Form\.Height\s*=\s*(\d+)/);
+
+            if (titleMatch) {
+                document.getElementById('guiTitle').value = titleMatch[1];
+                document.getElementById('titleBar').textContent = titleMatch[1];
+            }
+            if (widthMatch) {
+                const width = parseInt(widthMatch[1], 10);
+                document.getElementById('guiWidth').value = width;
+                canvas.style.width = width + 'px';
+            }
+            if (heightMatch) {
+                const height = parseInt(heightMatch[1], 10);
+                document.getElementById('guiHeight').value = height;
+                canvas.style.height = height + 'px';
+            }
+
+            const elementMatches = inputCode.matchAll(/\$(\w+)\d+\s*=\s*New-Object\s+System\.Windows\.Forms\.(\w+)/g);
+            for (const match of elementMatches) {
+                const [, , type] = match;
+                const elementRegex = new RegExp(`\\$${match[1]}\\d+\\.([A-Za-z]+)\\s*=\\s*(.+)`, 'g');
+                const element = document.createElement('div');
+                element.className = `draggable ${type.toLowerCase()}`;
+                element.setAttribute('data-type', type);
+
+                const properties = {};
+                let propertyMatch;
+                while ((propertyMatch = elementRegex.exec(inputCode)) !== null) {
+                    properties[propertyMatch[1]] = propertyMatch[2].replace(/"/g, '');
+                }
+
+                element.style.left = `${properties.Left || 10}px`;
+                element.style.top = `${properties.Top || 30}px`;
+
+                if (type === 'Button') {
+                    element.textContent = properties.Text || 'Click Me';
+                    element.classList.add('button');
+                } else if (type === 'Label') {
+                    element.textContent = properties.Text || 'Label Text';
+                    element.classList.add('label');
+                } else if (type === 'TextBox') {
+                    element.classList.add('textbox');
+                }
+
+                element.addEventListener('mousedown', (e) => startDrag(e, element));
+                if (type === 'Label' || type === 'Button') {
+                    element.addEventListener('dblclick', () => editElementText(element));
+                }
+
+                canvas.appendChild(element);
+            }
         }
     </script>
     <script>
